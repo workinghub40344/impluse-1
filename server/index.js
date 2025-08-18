@@ -3,39 +3,45 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const Class = require('./models/Class');
 
+const app = express();
+const port = process.env.PORT || 3001;
+
 // --- Global Error Handling ---
-// Gracefully shut down the server on unhandled errors.
 process.on('uncaughtException', (err) => {
   console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
   console.error(err.name, err.message);
-  process.exit(1); // Exit immediately
+  process.exit(1);
 });
 
-const app = express();
-const port = process.env.PORT || 3001;
+process.on('unhandledRejection', (err) => {
+  console.error('UNHANDLED REJECTION! 💥');
+  console.error(err.name, err.message);
+  if (server) {
+    server.close(() => process.exit(1));
+  } else {
+    process.exit(1);
+  }
+});
 
 // --- Middleware ---
 app.use(cors());
 app.use(express.json());
 
 // --- Routes ---
-app.get('/', (req, res) => {
-  res.send('Bharat Barbell Club API is running!');
-});
+app.get('/', (req, res) => res.send('Bharat Barbell Club API is running!'));
 app.use('/api/classes', require('./routes/classes'));
 app.use('/api/auth', require('./routes/auth'));
 
-// --- Database Seeding Function ---
+// --- Database Seeding ---
 async function seedDatabase() {
   try {
-    // Only seed if the collection is empty
     const count = await Class.countDocuments();
     if (count > 0) {
       console.log('Database already seeded. Skipping.');
       return;
     }
 
-    console.log('Database is empty. Seeding with sample classes...');
+    console.log('Seeding database with sample classes...');
     const classesToSeed = [
       { name: 'Beast Mode HIIT', description: 'High-intensity interval training.', instructor: 'Vikram', schedule: new Date('2025-08-18T06:00:00'), capacity: 15 },
       { name: 'Powerlifting Fundamentals', description: 'Master the big three lifts.', instructor: 'Meera', schedule: new Date('2025-08-18T07:00:00'), capacity: 8 },
@@ -45,38 +51,24 @@ async function seedDatabase() {
     await Class.insertMany(classesToSeed);
     console.log('✅ Database seeded successfully!');
   } catch (err) {
-    console.error('❌ Error seeding database:', err);
+    console.error('❌ Error seeding database:', err.message);
   }
 }
 
-// --- DB Connection and Server Startup ---
-const DB_URL = "mongodb+srv://manishsharma40344:Manish1234@cluster0.xru85ip.mongodb.net/";
+// --- MongoDB Connection ---
+const DB_URL = process.env.MONGO_URL || "mongodb+srv://manishsharma40344:Manish1234@cluster0.xru85ip.mongodb.net/GYM";
 
 let server;
 
-mongoose.connect(DB_URL)
+mongoose.connect(DB_URL, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     console.log('✅ Database connection successful!');
     seedDatabase();
-    server = app.listen(port, () => {
-      console.log(`🚀 Server is running on port: ${port}`);
-    });
+    server = app.listen(port, () => console.log(`🚀 Server is running on port: ${port}`));
   })
   .catch(err => {
     console.error('❌ DATABASE CONNECTION ERROR!');
-    console.error(err);
+    console.error(err.message);
+    console.error('Tip: Check if your IP is whitelisted in MongoDB Atlas or credentials are correct.');
     process.exit(1);
   });
-
-// --- Global Error Handling for Unhandled Promise Rejections ---
-process.on('unhandledRejection', (err) => {
-  console.error('UNHANDLED REJECTION! 💥 Shutting down...');
-  console.error(err.name, err.message);
-  if (server) {
-    server.close(() => {
-      process.exit(1);
-    });
-  } else {
-    process.exit(1);
-  }
-});
