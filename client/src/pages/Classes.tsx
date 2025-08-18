@@ -1,63 +1,40 @@
+import { useState, useEffect } from 'react';
 import { Clock, Users, Calendar, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+interface Class {
+  _id: string;
+  name: string;
+  description: string;
+  instructor: string;
+  schedule: string; // Assuming schedule is a string for now
+  capacity: number;
+  // Add other fields from your model that you want to use
+}
+
 const Classes = () => {
-  const classes = [
-    {
-      name: "Beast Mode HIIT",
-      description: "High-intensity interval training that pushes your limits",
-      duration: "45 min",
-      capacity: "15 people",
-      level: "Intermediate",
-      schedule: "Mon, Wed, Fri - 6:00 AM",
-      image: "💪"
-    },
-    {
-      name: "Powerlifting Fundamentals",
-      description: "Master the big three: squat, bench press, and deadlift",
-      duration: "60 min",
-      capacity: "8 people",
-      level: "Beginner",
-      schedule: "Tue, Thu, Sat - 7:00 AM",
-      image: "🏋️"
-    },
-    {
-      name: "Strength & Conditioning",
-      description: "Build functional strength for everyday life",
-      duration: "50 min",
-      capacity: "12 people",
-      level: "All Levels",
-      schedule: "Mon, Wed, Fri - 6:00 PM",
-      image: "💯"
-    },
-    {
-      name: "Olympic Lifting",
-      description: "Learn explosive movements: clean, jerk, and snatch",
-      duration: "75 min",
-      capacity: "6 people",
-      level: "Advanced",
-      schedule: "Tue, Thu - 8:00 AM",
-      image: "🥇"
-    },
-    {
-      name: "Bodybuilding Focus",
-      description: "Hypertrophy training for muscle mass and definition",
-      duration: "60 min",
-      capacity: "10 people",
-      level: "Intermediate",
-      schedule: "Daily - 5:00 PM",
-      image: "🔥"
-    },
-    {
-      name: "Cardio Combat",
-      description: "Boxing-inspired cardio for strength and endurance",
-      duration: "40 min",
-      capacity: "20 people",
-      level: "All Levels",
-      schedule: "Mon, Wed, Fri - 7:00 PM",
-      image: "🥊"
-    }
-  ];
+  const [classes, setClasses] = useState<Class[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/classes');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        setClasses(data);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : String(error));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClasses();
+  }, []);
 
   const getLevelColor = (level: string) => {
     switch (level) {
@@ -88,60 +65,48 @@ const Classes = () => {
       {/* Classes Grid */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {classes.map((classItem, index) => (
-              <div key={index} className="card-gym group hover:shadow-strong transition-all duration-300">
-                {/* Class Header */}
-                <div className="text-center mb-6">
-                  <div className="text-6xl mb-4">{classItem.image}</div>
-                  <h3 className="text-2xl font-bold text-primary mb-2">{classItem.name}</h3>
-                  <p className="text-muted-foreground">{classItem.description}</p>
-                </div>
+          {loading && <p>Loading classes...</p>}
+          {error && <p className="text-red-500">Error: {error}</p>}
+          {!loading && !error && (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {classes.map((classItem) => (
+                <div key={classItem._id} className="card-gym group hover:shadow-strong transition-all duration-300">
+                  {/* Class Header */}
+                  <div className="text-center mb-6">
+                    <h3 className="text-2xl font-bold text-primary mb-2">{classItem.name}</h3>
+                    <p className="text-muted-foreground">{classItem.description}</p>
+                  </div>
 
-                {/* Class Details */}
-                <div className="space-y-4 mb-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 text-muted-foreground">
-                      <Clock className="h-4 w-4" />
-                      <span>{classItem.duration}</span>
+                  {/* Class Details */}
+                  <div className="space-y-4 mb-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2 text-muted-foreground">
+                        <Users className="h-4 w-4" />
+                        <span>{classItem.capacity} people</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        <span className="text-sm">{new Date(classItem.schedule).toLocaleString()}</span>
+                      </div>
                     </div>
                     <div className="flex items-center space-x-2 text-muted-foreground">
-                      <Users className="h-4 w-4" />
-                      <span>{classItem.capacity}</span>
+                      <span>Instructor: {classItem.instructor}</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      <span className="text-sm">{classItem.schedule}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getLevelColor(classItem.level)}`}>
-                      {classItem.level}
-                    </span>
-                    <div className="flex items-center space-x-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-accent text-accent" />
-                      ))}
-                    </div>
+                  {/* Action Buttons */}
+                  <div className="space-y-3">
+                    <Button className="w-full btn-hero">
+                      Book Class
+                    </Button>
+                    <Button variant="outline" className="w-full">
+                      Learn More
+                    </Button>
                   </div>
                 </div>
-
-                {/* Action Buttons */}
-                <div className="space-y-3">
-                  <Button className="w-full btn-hero">
-                    Book Class
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    Learn More
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
