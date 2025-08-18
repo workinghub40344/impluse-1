@@ -23,6 +23,7 @@ app.get('/', (req, res) => {
   res.send('Bharat Barbell Club API is running!');
 });
 app.use('/api/classes', require('./routes/classes'));
+app.use('/api/auth', require('./routes/auth'));
 
 // --- Database Seeding Function ---
 async function seedDatabase() {
@@ -49,7 +50,7 @@ async function seedDatabase() {
 }
 
 // --- DB Connection and Server Startup ---
-const DB_URL = process.env.MONGO_URI || 'mongodb://localhost:27017/bharatbarbell';
+const DB_URL = "mongodb+srv://manishsharma40344:Manish1234@cluster0.xru85ip.mongodb.net/";
 
 let server;
 
