@@ -1,10 +1,20 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { Menu, X, Dumbbell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { isAuthenticated, logout } = useAuth();
+  const { toast } = useToast();
+
+  const handleLogout = () => {
+    logout();
+    toast({ title: 'Logged out successfully.' });
+    setIsOpen(false); // Close mobile menu on logout
+  };
 
   const navItems = [
     { name: 'Home', path: '/' },
@@ -48,12 +58,24 @@ const Navbar = () => {
               ))}
               
               <div className="flex items-center space-x-3">
-                <Button variant="outline" size="sm">
-                  Login
-                </Button>
-                <Button className="btn-hero">
-                  Join Now
-                </Button>
+                {isAuthenticated ? (
+                  <Button variant="outline" size="sm" onClick={handleLogout}>
+                    Logout
+                  </Button>
+                ) : (
+                  <>
+                    <Link to="/login">
+                      <Button variant="outline" size="sm">
+                        Login
+                      </Button>
+                    </Link>
+                    <Link to="/join-now">
+                      <Button className="btn-hero">
+                        Join Now
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -135,12 +157,24 @@ const Navbar = () => {
 
             {/* Action Buttons */}
             <div className="p-6 space-y-3 border-t border-border">
-              <Button variant="outline" className="w-full" size="lg">
-                Login
-              </Button>
-              <Button className="btn-hero w-full" size="lg">
-                Join Now
-              </Button>
+              {isAuthenticated ? (
+                <Button variant="outline" className="w-full" size="lg" onClick={handleLogout}>
+                  Logout
+                </Button>
+              ) : (
+                <>
+                  <Link to="/login" className="block" onClick={() => setIsOpen(false)}>
+                    <Button variant="outline" className="w-full" size="lg">
+                      Login
+                    </Button>
+                  </Link>
+                  <Link to="/join-now" className="block" onClick={() => setIsOpen(false)}>
+                    <Button className="btn-hero w-full" size="lg">
+                      Join Now
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

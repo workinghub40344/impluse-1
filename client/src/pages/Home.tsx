@@ -1,5 +1,6 @@
 import { ArrowRight, Zap, Users, Trophy, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   return (
@@ -33,13 +34,17 @@ const Home = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up">
-              <Button className="btn-hero text-lg px-8 py-4">
-                Start Your Journey
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button className="btn-outline-hero text-lg px-8 py-4">
-                View Classes
-              </Button>
+              <Link to="/join-now">
+                <Button className="btn-hero text-lg px-8 py-4">
+                  Start Your Journey
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link to="/classes">
+                <Button className="btn-outline-hero text-lg px-8 py-4">
+                  View Classes
+                </Button>
+              </Link>
             </div>
 
             {/* Stats */}
