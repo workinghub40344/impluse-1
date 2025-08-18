@@ -59,7 +59,7 @@ async function seedDatabase() {
 const DB_URL = process.env.MONGO_URL || "mongodb+srv://manishsharma40344:Manish1234@cluster0.xru85ip.mongodb.net/GYM";
 
 let server;
-
+  
 mongoose.connect(DB_URL, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     console.log('✅ Database connection successful!');
