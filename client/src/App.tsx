@@ -13,7 +13,9 @@ import Gallery from "./pages/Gallery";
 import Contact from "./pages/Contact";
 import JoinNow from "./pages/JoinNow";
 import Login from "./pages/Login";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +37,9 @@ const App = () => (
             </Route>
             <Route path="join-now" element={<JoinNow />} />
             <Route path="login" element={<Login />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="admin" element={<Admin />} />
+            </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
