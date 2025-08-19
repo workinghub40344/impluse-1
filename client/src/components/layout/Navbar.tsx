@@ -16,7 +16,7 @@ const Navbar = () => {
     setIsOpen(false); // Close mobile menu on logout
   };
 
-  const navItems = [
+  const baseNavItems = [
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
     { name: 'Classes', path: '/classes' },
@@ -24,6 +24,10 @@ const Navbar = () => {
     { name: 'Gallery', path: '/gallery' },
     { name: 'Contact', path: '/contact' }
   ];
+
+  const navItems = isAuthenticated
+    ? [...baseNavItems, { name: 'Admin', path: '/admin' }]
+    : baseNavItems;
 
   return (
     <>
@@ -56,6 +60,16 @@ const Navbar = () => {
                   {item.name}
                 </NavLink>
               ))}
+              {isAuthenticated && (
+                <NavLink
+                  to="/admin"
+                  className={({ isActive }) =>
+                    `nav-link ${isActive ? 'nav-link-active' : ''}`
+                  }
+                >
+                  Admin
+                </NavLink>
+              )}
               
               <div className="flex items-center space-x-3">
                 {isAuthenticated ? (
