@@ -1,9 +1,21 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { jwtDecode } from 'jwt-decode';
+// AuthContext.tsx
+
+import { useState, useEffect, ReactNode } from 'react';
+import {jwtDecode} from 'jwt-decode'; 
+import { AuthContext } from './AuthContext'
 
 interface User {
   id: string;
   role: 'user' | 'admin';
+}
+
+interface DecodedToken {
+  user: {
+    id: string;
+    role: 'user' | 'admin';
+  };
+  exp: number;
+  iat: number;
 }
 
 interface AuthContextType {
@@ -15,53 +27,50 @@ interface AuthContextType {
   loading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      if (token) {
-        const decodedToken: { user: User; exp: number } = jwtDecode(token);
-        // Check if token is expired
-        if (Date.now() >= decodedToken.exp * 1000) {
-          throw new Error('Token expired');
-        }
-        setUser(decodedToken.user);
-        localStorage.setItem('token', token);
-      } else {
-        throw new Error('No token');
+  try {
+    if (token) {
+      const decoded: DecodedToken = jwtDecode(token);
+      console.log("Decoded token:", decoded); // Debug
+      
+      if (Date.now() >= decoded.exp * 1000) {
+        throw new Error('Token expired');
       }
-    } catch (error) {
-      setUser(null);
-      localStorage.removeItem('token');
-    } finally {
-      setLoading(false);
+
+      // 👇 Fix applied
+      setUser({ id: decoded.user.id, role: decoded.user.role });
+      localStorage.setItem('token', token);
+    } else {
+      throw new Error('No token');
     }
-  }, [token]);
+  } catch (error) {
+    setUser(null);
+    localStorage.removeItem('token');
+  } finally {
+    setLoading(false);
+  }
+}, [token]);
+
 
   const login = (newToken: string) => {
     setToken(newToken);
+    localStorage.setItem('token', newToken);
   };
 
   const logout = () => {
     setToken(null);
+    setUser(null);
+    localStorage.removeItem('token');
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated: !!user, user, token, login, logout, loading  }}>
+    <AuthContext.Provider value={{ isAuthenticated: !!user, user, token, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };

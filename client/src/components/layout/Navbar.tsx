@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { Menu, X, Dumbbell, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 const Navbar = () => {

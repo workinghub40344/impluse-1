@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext.tsx";
 import Layout from "./components/layout/Layout";
 import Home from "./pages/Home";
 import About from "./pages/About";
@@ -37,7 +37,7 @@ const App = () => (
             </Route>
             <Route path="join-now" element={<JoinNow />} />
             <Route path="login" element={<Login />} />
-            <Route element={<ProtectedRoute />}>
+            <Route element={<ProtectedRoute requiredRole="admin" />}>
               <Route path="admin" element={<Admin />} />
             </Route>
             <Route path="*" element={<NotFound />} />
