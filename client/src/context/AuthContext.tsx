@@ -3,6 +3,7 @@ import { jwtDecode } from 'jwt-decode';
 
 interface User {
   id: string;
+  role: 'user' | 'admin';
 }
 
 interface AuthContextType {
@@ -18,6 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     try {
@@ -35,6 +37,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       setUser(null);
       localStorage.removeItem('token');
+    } finally {
+      setLoading(false);
     }
   }, [token]);
 

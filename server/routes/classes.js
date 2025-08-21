@@ -16,7 +16,7 @@ router.get('/', getClasses);
 // @route   POST api/classes
 // @desc    Create a class
 // @access  Private
-router.post('/', protect, createClass);
+router.post('/createclass', protect, createClass);
 
 // @route   PUT api/classes/:id
 // @desc    Update a class

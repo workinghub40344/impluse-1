@@ -24,6 +24,7 @@ const registerUser = async (req, res) => {
       name,
       email,
       password,
+      role: "user",
     });
 
     // The pre-save hook in the User model will hash the password
@@ -32,7 +33,8 @@ const registerUser = async (req, res) => {
     // Create and sign a JWT
     const payload = {
       user: {
-        id: user.id, // mongoose uses 'id' as a virtual getter for '_id'
+        id: user.id,  // mongoose uses 'id' as a virtual getter for '_id'
+        role: user.role,
       },
     };
 
@@ -42,7 +44,15 @@ const registerUser = async (req, res) => {
       { expiresIn: 3600 }, // Expires in 1 hour
       (err, token) => {
         if (err) throw err;
-        res.json({ token });
+        res.json({ 
+          token,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+          }
+        });
       }
     );
   } catch (err) {
@@ -79,6 +89,7 @@ const loginUser = async (req, res) => {
     const payload = {
       user: {
         id: user.id,
+        role: user.role,
       },
     };
 
@@ -88,7 +99,15 @@ const loginUser = async (req, res) => {
       { expiresIn: 3600 },
       (err, token) => {
         if (err) throw err;
-        res.json({ token });
+        res.json({ 
+          token,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+          }
+         });
       }
     );
   } catch (err) {

@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { Menu, X, Dumbbell } from 'lucide-react';
+import { Menu, X, Dumbbell, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
   const { toast } = useToast();
 
   const handleLogout = () => {
@@ -26,7 +26,9 @@ const Navbar = () => {
   ];
 
   const navItems = isAuthenticated
-    ? [...baseNavItems, { name: 'Admin', path: '/admin' }]
+    ? [...baseNavItems, 
+        ...(user?.role === 'admin' ? [{ name: 'Admin', path: '/admin' }] : [])
+    ]
     : baseNavItems;
 
   return (
@@ -60,16 +62,6 @@ const Navbar = () => {
                   {item.name}
                 </NavLink>
               ))}
-              {isAuthenticated && (
-                <NavLink
-                  to="/admin"
-                  className={({ isActive }) =>
-                    `nav-link ${isActive ? 'nav-link-active' : ''}`
-                  }
-                >
-                  Admin
-                </NavLink>
-              )}
               
               <div className="flex items-center space-x-3">
                 {isAuthenticated ? (
