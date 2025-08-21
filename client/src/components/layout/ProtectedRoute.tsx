@@ -1,10 +1,22 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
-const ProtectedRoute = () => {
-  const { user } = useAuth();
+const ProtectedRoute = ({ requiredRole }: { requiredRole?: string }) => {
+  const { user, loading } = useAuth();
 
-  return user ? <Outlet /> : <Navigate to="/login" replace />;
+  if (loading) {
+    return <div>Loading...</div>; // Ya spinner
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (requiredRole && user.role !== requiredRole) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
 };
 
 export default ProtectedRoute;
