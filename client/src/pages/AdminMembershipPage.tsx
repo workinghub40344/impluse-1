@@ -57,7 +57,7 @@ export type MembershipPlan = {
 
 // API Functions
 const fetchMemberships = async (): Promise<MembershipPlan[]> => {
-  const response = await fetch("/api/memberships");
+  const response = await fetch("http://localhost:3001/api/memberships");
   if (!response.ok) {
     throw new Error("Network response was not ok");
   }
@@ -65,7 +65,7 @@ const fetchMemberships = async (): Promise<MembershipPlan[]> => {
 };
 
 const createMembership = async (data: MembershipFormData, token: string | null) => {
-  const response = await fetch("/api/memberships", {
+  const response = await fetch("http://localhost:3001/api/memberships", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -81,7 +81,7 @@ const createMembership = async (data: MembershipFormData, token: string | null) 
 };
 
 const updateMembership = async ({ id, data, token }: { id: string, data: MembershipFormData, token: string | null }) => {
-  const response = await fetch(`/api/memberships/${id}`, {
+  const response = await fetch(`http://localhost:3001/api/memberships/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -97,7 +97,7 @@ const updateMembership = async ({ id, data, token }: { id: string, data: Members
 };
 
 const deleteMembership = async ({ id, token }: { id: string, token: string | null }) => {
-  const response = await fetch(`/api/memberships/${id}`, {
+  const response = await fetch(`http://localhost:3001/api/memberships/${id}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,

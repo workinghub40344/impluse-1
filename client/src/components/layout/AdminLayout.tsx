@@ -21,6 +21,17 @@ const AdminLayout = () => {
             Dashboard
           </NavLink>
           <NavLink
+            to="/admin/addclass"
+            end // 'end' is important for the root admin path
+            className={({ isActive }) =>
+              `block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 ${
+                isActive ? 'bg-gray-700 text-white font-semibold' : 'text-gray-300 hover:text-white'
+              }`
+            }
+          >
+            Add Class
+          </NavLink>
+          <NavLink
             to="/admin/membership"
             className={({ isActive }) =>
               `block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 ${

@@ -13,7 +13,7 @@ import Gallery from "./pages/Gallery";
 import Contact from "./pages/Contact";
 import JoinNow from "./pages/JoinNow";
 import Login from "./pages/Login";
-import Admin from "./pages/Admin";
+import Admin from "./pages/AdminClasses";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import AdminLayout from "./components/layout/AdminLayout";
@@ -48,6 +48,7 @@ const App = () => (
             <Route element={<ProtectedRoute requiredRole="admin" />}>
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminDashboard />} />
+                <Route path="addclass" element={<Admin />} />
                 <Route path="membership" element={<AdminMembershipPage />} />
               </Route>
             </Route>
