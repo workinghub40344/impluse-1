@@ -119,6 +119,8 @@ Navy + Orange + White with bold, powerful aesthetics
   }
 }
 
+
+
 @layer base {
   * {
     @apply border-border;
@@ -128,6 +130,7 @@ Navy + Orange + White with bold, powerful aesthetics
     @apply bg-background text-foreground font-sans antialiased;
   }
 }
+
 
 @layer components {
   /* Hero Button Variants */

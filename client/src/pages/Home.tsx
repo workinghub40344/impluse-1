@@ -1,8 +1,10 @@
 import { ArrowRight, Zap, Users, Trophy, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 const Home = () => {
+  const { isAuthenticated } = useAuth(); 
   return (
     <div>
       {/* Hero Section */}
@@ -34,12 +36,25 @@ const Home = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up">
-              <Link to="/join-now">
+              {
+                isAuthenticated ? (
+                  <Link to="/classes">
                 <Button className="btn-hero text-lg px-8 py-4">
                   Start Your Journey
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
+                ) : (
+                  <Link to="/join-now">
+                <Button className="btn-hero text-lg px-8 py-4">
+                  Start Your Journey
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+                )
+
+              }
+              
               <Link to="/classes">
                 <Button className="btn-outline-hero text-lg px-8 py-4">
                   View Classes

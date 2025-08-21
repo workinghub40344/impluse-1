@@ -56,7 +56,7 @@ const Navbar = () => {
                   key={item.name}
                   to={item.path}
                   className={({ isActive }) =>
-                    `nav-link ${isActive ? 'nav-link-active' : ''}`
+                    `nav-link ${isActive ? 'nav-link-active hover:text-black' : ''}`
                   }
                 >
                   {item.name}
