@@ -16,6 +16,9 @@ import Login from "./pages/Login";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
+import AdminLayout from "./components/layout/AdminLayout";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminMembershipPage from "./pages/AdminMembershipPage";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +30,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public user-facing routes */}
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />
               <Route path="about" element={<About />} />
@@ -35,11 +39,19 @@ const App = () => (
               <Route path="gallery" element={<Gallery />} />
               <Route path="contact" element={<Contact />} />
             </Route>
+
+            {/* Standalone auth routes */}
             <Route path="join-now" element={<JoinNow />} />
             <Route path="login" element={<Login />} />
+
+            {/* Protected admin routes with a separate layout */}
             <Route element={<ProtectedRoute requiredRole="admin" />}>
-              <Route path="admin" element={<Admin />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="membership" element={<AdminMembershipPage />} />
+              </Route>
             </Route>
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
