@@ -25,6 +25,7 @@ app.use(express.json());
 app.get('/', (req, res) => res.send('Bharat Barbell Club API is running!'));
 app.use('/api/classes', require('./routes/classes'));
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/memberships', require('./routes/memberships'));
 
 const server = app.listen(port, () => console.log(`🚀 Server is running on port: ${port}`));
 
