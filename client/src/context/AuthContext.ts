@@ -14,6 +14,7 @@ export interface AuthContextType {
   login: (token: string) => void;
   logout: () => void;
   loading: boolean;
+  url: string;
 }
 
 // 👇 Sirf context yaha export hoga

@@ -25,7 +25,9 @@ interface AuthContextType {
   login: (token: string) => void;
   logout: () => void;
   loading: boolean;
+  url: string;
 }
+
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
@@ -67,9 +69,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     localStorage.removeItem('token');
   };
-
+  const url = "http://localhost:3001";
+  
   return (
-    <AuthContext.Provider value={{ isAuthenticated: !!user, user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ isAuthenticated: !!user, user, token, login, logout, loading, url }}>
       {children}
     </AuthContext.Provider>
   );

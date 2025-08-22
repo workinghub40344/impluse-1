@@ -1,3 +1,4 @@
+import axios, { AxiosError} from "axios";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -46,7 +47,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Define the type for a membership plan
+
+// -----------------------------------
+// Types
+// -----------------------------------
 export type MembershipPlan = {
   _id: string;
   name: string;
@@ -59,64 +63,69 @@ export type MembershipPlan = {
   icon?: string;
 };
 
+// -----------------------------------
+// Axios Helper
+// -----------------------------------
+const createAxiosInstance = (token: string | null, url: string) => {
+  return axios.create({
+    baseURL: `${url}/api`,
+    headers: {
+      Authorization: token ? `Bearer ${token}` : "",
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+// -----------------------------------
 // API Functions
-const fetchMemberships = async (): Promise<MembershipPlan[]> => {
-  const response = await fetch("http://localhost:3001/api/memberships");
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
-  }
-  return response.json();
+// -----------------------------------
+const fetchMemberships = async (url: string): Promise<MembershipPlan[]> => {
+  const axiosInstance = createAxiosInstance(null, url);
+  const { data } = await axiosInstance.get("/memberships");
+  return data;
 };
 
-const createMembership = async (data: MembershipFormData, token: string | null) => {
-  const response = await fetch("http://localhost:3001/api/memberships", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(data),
-  });
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.msg || "Failed to create membership plan");
-  }
-  return response.json();
+const createMembership = async (data: MembershipFormData, token: string | null, url: string) => {
+  const axiosInstance = createAxiosInstance(token, url);
+  const res = await axiosInstance.post("/memberships", data);
+  return res.data;
 };
 
-const updateMembership = async ({ id, data, token }: { id: string, data: MembershipFormData, token: string | null }) => {
-  const response = await fetch(`http://localhost:3001/api/memberships/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(data),
-  });
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.msg || "Failed to update membership plan");
-  }
-  return response.json();
+const updateMembership = async ({
+  id,
+  data,
+  token,
+  url,
+}: {
+  id: string;
+  data: MembershipFormData;
+  token: string | null;
+  url: string;
+}) => {
+  const axiosInstance = createAxiosInstance(token, url);
+  const res = await axiosInstance.put(`/memberships/${id}`, data);
+  return res.data;
 };
 
-const deleteMembership = async ({ id, token }: { id: string, token: string | null }) => {
-  const response = await fetch(`http://localhost:3001/api/memberships/${id}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.msg || "Failed to delete membership plan");
-  }
-  return response.json();
+const deleteMembership = async ({
+  id,
+  token,
+  url,
+}: {
+  id: string;
+  token: string | null;
+  url: string;
+}) => {
+  const axiosInstance = createAxiosInstance(token, url);
+  const res = await axiosInstance.delete(`/memberships/${id}`);
+  return res.data;
 };
 
-
+// -----------------------------------
+// Component
+// -----------------------------------
 const AdminMembershipPage = () => {
-  const { token } = useAuth();
+  const { token, url } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -127,45 +136,49 @@ const AdminMembershipPage = () => {
 
   // Queries
   const { data: memberships, isLoading, isError, error } = useQuery<MembershipPlan[]>({
-    queryKey: ["memberships"],
-    queryFn: fetchMemberships,
+    queryKey: ["memberships", url],
+    queryFn: () => fetchMemberships(url),
   });
 
   // Mutations
   const createMutation = useMutation({
-    mutationFn: (newData: MembershipFormData) => createMembership(newData, token),
+    mutationFn: (newData: MembershipFormData) => createMembership(newData, token, url),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['memberships'] });
+      queryClient.invalidateQueries({ queryKey: ["memberships", url] });
       toast({ title: "Success", description: "Membership plan created." });
       setIsFormOpen(false);
     },
-    onError: (err: Error) => {
-      toast({ title: "Error", description: err.message || "Failed to create plan.", variant: "destructive" });
-    }
+    onError: (err: AxiosError<{ msg: string }>) => {
+      const msg = err.response?.data?.msg || err.message || "Failed to create plan.";
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    },
   });
 
   const updateMutation = useMutation({
-    mutationFn: (vars: { id: string, data: MembershipFormData }) => updateMembership({ ...vars, token }),
+    mutationFn: (vars: { id: string; data: MembershipFormData }) =>
+      updateMembership({ ...vars, token, url }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['memberships'] });
+      queryClient.invalidateQueries({ queryKey: ["memberships", url] });
       toast({ title: "Success", description: "Membership plan updated." });
       setIsFormOpen(false);
     },
-    onError: (err: Error) => {
-      toast({ title: "Error", description: err.message || "Failed to update plan.", variant: "destructive" });
-    }
+    onError: (err: AxiosError<{ msg: string }>) => {
+      const msg = err.response?.data?.msg || err.message || "Failed to update plan.";
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteMembership({ id, token }),
+    mutationFn: (id: string) => deleteMembership({ id, token, url }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['memberships'] });
+      queryClient.invalidateQueries({ queryKey: ["memberships", url] });
       toast({ title: "Success", description: "Membership plan deleted." });
       setIsAlertOpen(false);
     },
-    onError: (err: Error) => {
-      toast({ title: "Error", description: err.message || "Failed to delete plan.", variant: "destructive" });
-    }
+    onError: (err: AxiosError<{ msg: string }>) => {
+      const msg = err.response?.data?.msg || err.message || "Failed to delete plan.";
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    },
   });
 
   const handleSave = (data: MembershipFormData) => {
@@ -194,21 +207,27 @@ const AdminMembershipPage = () => {
           <Button disabled>Add New Plan</Button>
         </div>
         <Card>
-          <CardHeader><CardTitle>Existing Plans</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Existing Plans</CardTitle>
+          </CardHeader>
           <CardContent>
-             <div className="space-y-4">
-                <Skeleton className="h-8 w-full" />
-                <Skeleton className="h-8 w-full" />
-                <Skeleton className="h-8 w-full" />
-             </div>
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   if (isError) {
-    return <div className="text-red-500">Error loading membership plans: {error.message}</div>;
+    return (
+      <div className="text-red-500">
+        Error loading membership plans: {(error as Error).message}
+      </div>
+    );
   }
 
   return (
@@ -239,7 +258,9 @@ const AdminMembershipPage = () => {
             <TableBody>
               {memberships?.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">No membership plans found.</TableCell>
+                  <TableCell colSpan={6} className="text-center">
+                    No membership plans found.
+                  </TableCell>
                 </TableRow>
               )}
               {memberships?.map((plan) => (
@@ -248,7 +269,9 @@ const AdminMembershipPage = () => {
                   <TableCell className="capitalize">{plan.duration}</TableCell>
                   <TableCell>${plan.price.toFixed(2)}</TableCell>
                   <TableCell>
-                    {plan.originalPrice ? `$${plan.originalPrice.toFixed(2)}` : "-"}
+                    {plan.originalPrice
+                      ? `$${plan.originalPrice.toFixed(2)}`
+                      : "-"}
                   </TableCell>
                   <TableCell>{plan.popular ? "Yes" : "No"}</TableCell>
                   <TableCell>
@@ -261,11 +284,16 @@ const AdminMembershipPage = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleOpenFormDialog(plan)}>
+                        <DropdownMenuItem
+                          onClick={() => handleOpenFormDialog(plan)}
+                        >
                           Edit
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600 hover:!text-red-600" onClick={() => handleOpenDeleteDialog(plan)}>
+                        <DropdownMenuItem
+                          className="text-red-600 hover:!text-red-600"
+                          onClick={() => handleOpenDeleteDialog(plan)}
+                        >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
                         </DropdownMenuItem>
@@ -313,7 +341,11 @@ const AdminMembershipPage = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => planToDelete && deleteMutation.mutate(planToDelete._id)}>
+            <AlertDialogAction
+              onClick={() =>
+                planToDelete && deleteMutation.mutate(planToDelete._id)
+              }
+            >
               Continue
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -324,6 +356,3 @@ const AdminMembershipPage = () => {
 };
 
 export default AdminMembershipPage;
-
-
-
