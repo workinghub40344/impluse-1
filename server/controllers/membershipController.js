@@ -35,7 +35,7 @@ const getMembershipById = async (req, res) => {
 // @route   POST /api/memberships
 // @access  Private/Admin
 const createMembership = async (req, res) => {
-  const { name, price, duration, features } = req.body;
+  const { name, price, duration, features, originalPrice, popular, color, icon } = req.body;
 
   try {
     const newMembership = new Membership({
@@ -43,6 +43,10 @@ const createMembership = async (req, res) => {
       price,
       duration,
       features,
+      originalPrice,
+      popular,
+      color,
+      icon,
     });
 
     const savedMembership = await newMembership.save();
