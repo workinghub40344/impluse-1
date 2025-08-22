@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Users, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Class {
   _id: string;
@@ -15,23 +17,26 @@ const Classes = () => {
   const [classes, setClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { url } = useAuth();
 
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/classes');
-        if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.json();
-        setClasses(data);
-      } catch (error) {
-        setError(error instanceof Error ? error.message : String(error));
+        const response = await axios.get<Class[]>(`${url}/api/classes`);
+        setClasses(response.data);
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          setError(err.response?.data?.message || err.message);
+        } else {
+          setError('An unexpected error occurred');
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchClasses();
-  }, []);
+  }, [url]);
 
   // Derive day and time from schedule
   const classesWithDayTime = classes.map(c => {
@@ -43,11 +48,9 @@ const Classes = () => {
     };
   });
 
-  // Days and times for table
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const times = Array.from(new Set(classesWithDayTime.map(c => c.time))).sort();
 
-  // Function to get class for a specific slot
   const getClassForSlot = (time: string, day: string) =>
     classesWithDayTime.find(c => c.time === time && c.day === day)?.name || '-';
 

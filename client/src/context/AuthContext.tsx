@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     localStorage.removeItem('token');
   };
-  const url = "http://localhost:3001";
+  const url = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   
   return (
     <AuthContext.Provider value={{ isAuthenticated: !!user, user, token, login, logout, loading, url }}>

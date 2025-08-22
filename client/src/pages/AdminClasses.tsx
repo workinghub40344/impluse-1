@@ -1,13 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { toast } from '@/hooks/use-toast';
-import { Separator } from '@/components/ui/separator';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Plus, Trash2, RefreshCw } from 'lucide-react';
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { toast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, Plus, Trash2, RefreshCw } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import axios, { AxiosError } from "axios";
 
 type ClassItem = {
   _id: string;
@@ -23,48 +25,50 @@ const Admin = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [search, setSearch] = useState<string>('');
+  const [search, setSearch] = useState<string>("");
   const [newClass, setNewClass] = useState({
-    name: '',
-    description: '',
-    instructor: '',
-    schedule: '',
+    name: "",
+    description: "",
+    instructor: "",
+    schedule: "",
     capacity: 0,
   });
 
-  // 🔹 Fetch all classes (logic unchanged)
-  const fetchClasses = async () => {
+  const { url } = useAuth();
+
+  // 🔹 Fetch all classes
+  const fetchClasses = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3001/api/classes');
-      const data = await response.json();
-      setClasses(data || []);
+      const response = await axios.get(`${url}/api/classes`);
+      setClasses(response.data || []);
     } catch (error) {
-      console.error('Error fetching classes:', error);
+      const err = error as AxiosError;
+      console.error("Error fetching classes:", err.message);
       toast({
-        title: 'Fetch failed',
-        description: 'Could not load classes. Please try again.',
-        variant: 'destructive',
+        title: "Fetch failed",
+        description: "Could not load classes. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [url]);
 
   useEffect(() => {
     fetchClasses();
-  }, []);
+  }, [fetchClasses]);
 
-  // 🔹 Handle input change (logic unchanged)
+  // 🔹 Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setNewClass((prev) => ({
       ...prev,
-      [name]: name === 'capacity' ? Number(value) : value,
+      [name]: name === "capacity" ? Number(value) : value,
     }));
   };
 
-  // Basic client-side guards (UX only; server still validates)
+  // 🔹 Form Validation
   const isFormValid = useMemo(() => {
     return (
       newClass.name.trim().length > 0 &&
@@ -75,99 +79,80 @@ const Admin = () => {
     );
   }, [newClass]);
 
-  // 🔹 Add new class (logic unchanged)
+  // 🔹 Add new class
   const handleAddClass = async () => {
     if (!isFormValid) {
       toast({
-        title: 'Missing information',
-        description: 'Please fill all required fields and ensure capacity is valid.',
-        variant: 'destructive',
+        title: "Missing information",
+        description: "Please fill all required fields and ensure capacity is valid.",
+        variant: "destructive",
       });
       return;
     }
 
     try {
       setSubmitting(true);
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3001/api/classes', {
-        method: 'POST',
+      const token = localStorage.getItem("token");
+
+      await axios.post(`${url}/api/classes`, newClass, {
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(newClass),
       });
 
-      if (response.ok) {
-        toast({ title: 'Success', description: 'Class added successfully.' });
-        setNewClass({
-          name: '',
-          description: '',
-          instructor: '',
-          schedule: '',
-          capacity: 0,
-        });
-        fetchClasses();
-      } else {
-        toast({
-          title: 'Error',
-          description: 'Failed to add class.',
-          variant: 'destructive',
-        });
-      }
+      toast({ title: "Success", description: "Class added successfully." });
+      setNewClass({
+        name: "",
+        description: "",
+        instructor: "",
+        schedule: "",
+        capacity: 0,
+      });
+      fetchClasses();
     } catch (error) {
-      console.error('Error adding class:', error);
+      const err = error as AxiosError;
+      console.error("Error adding class:", err.message);
       toast({
-        title: 'Network error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to add class. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setSubmitting(false);
     }
   };
 
-  // 🔹 Delete a class (logic unchanged, adds confirm + UI state)
+  // 🔹 Delete a class
   const handleDeleteClass = async (id: string) => {
-    const ok = window.confirm('Are you sure you want to delete this class?');
+    const ok = window.confirm("Are you sure you want to delete this class?");
     if (!ok) return;
 
     try {
       setDeletingId(id);
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3001/api/classes/${id}`, {
-        method: 'DELETE',
+      const token = localStorage.getItem("token");
+
+      await axios.delete(`${url}/api/classes/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (response.ok) {
-        toast({ title: 'Deleted', description: 'Class deleted successfully.' });
-        // optimistic: remove locally for snappy UI
-        setClasses((prev) => prev.filter((c) => c._id !== id));
-        // Or re-fetch to stay authoritative:
-        // await fetchClasses();
-      } else {
-        toast({
-          title: 'Error',
-          description: 'Failed to delete class.',
-          variant: 'destructive',
-        });
-      }
+      toast({ title: "Deleted", description: "Class deleted successfully." });
+      setClasses((prev) => prev.filter((c) => c._id !== id));
     } catch (error) {
-      console.error('Error deleting class:', error);
+      const err = error as AxiosError;
+      console.error("Error deleting class:", err.message);
       toast({
-        title: 'Network error',
-        description: 'Could not delete the class. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Could not delete the class. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setDeletingId(null);
     }
   };
 
-  // Filtered list (search by name/instructor)
+  // 🔹 Filtered list
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return classes;
@@ -181,12 +166,12 @@ const Admin = () => {
   }, [classes, search]);
 
   const formatDateTime = (iso?: string) => {
-    if (!iso) return 'N/A';
+    if (!iso) return "N/A";
     const d = new Date(iso);
-    if (isNaN(d.getTime())) return 'N/A';
+    if (isNaN(d.getTime())) return "N/A";
     return d.toLocaleString(undefined, {
-      dateStyle: 'medium',
-      timeStyle: 'short',
+      dateStyle: "medium",
+      timeStyle: "short",
     });
   };
 
@@ -212,61 +197,37 @@ const Admin = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name<span className="text-destructive"> *</span></Label>
-              <Input
-                id="name"
-                name="name"
-                placeholder="e.g., Yoga Basics"
-                value={newClass.name}
-                onChange={handleInputChange}
-              />
+              <Label htmlFor="name">
+                Name<span className="text-destructive"> *</span>
+              </Label>
+              <Input id="name" name="name" placeholder="e.g., Yoga Basics" value={newClass.name} onChange={handleInputChange} />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                name="description"
-                placeholder="Short description..."
-                value={newClass.description}
-                onChange={handleInputChange}
-              />
+              <Textarea id="description" name="description" placeholder="Short description..." value={newClass.description} onChange={handleInputChange} />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="instructor">Instructor<span className="text-destructive"> *</span></Label>
-              <Input
-                id="instructor"
-                name="instructor"
-                placeholder="e.g., Priya Sharma"
-                value={newClass.instructor}
-                onChange={handleInputChange}
-              />
+              <Label htmlFor="instructor">
+                Instructor<span className="text-destructive"> *</span>
+              </Label>
+              <Input id="instructor" name="instructor" placeholder="e.g., Priya Sharma" value={newClass.instructor} onChange={handleInputChange} />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="schedule">Schedule<span className="text-destructive"> *</span></Label>
-              <Input
-                id="schedule"
-                name="schedule"
-                type="datetime-local"
-                value={newClass.schedule}
-                onChange={handleInputChange}
-              />
+              <Label htmlFor="schedule">
+                Schedule<span className="text-destructive"> *</span>
+              </Label>
+              <Input id="schedule" name="schedule" type="datetime-local" value={newClass.schedule} onChange={handleInputChange} />
               <p className="text-xs text-muted-foreground">Pick date & time for the class.</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="capacity">Capacity<span className="text-destructive"> *</span></Label>
-              <Input
-                id="capacity"
-                name="capacity"
-                type="number"
-                min={0}
-                placeholder="0"
-                value={newClass.capacity}
-                onChange={handleInputChange}
-              />
+              <Label htmlFor="capacity">
+                Capacity<span className="text-destructive"> *</span>
+              </Label>
+              <Input id="capacity" name="capacity" type="number" min={0} placeholder="0" value={newClass.capacity} onChange={handleInputChange} />
             </div>
 
             <Separator />
@@ -275,9 +236,7 @@ const Admin = () => {
               {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
               Add Class
             </Button>
-            <p className="text-xs text-muted-foreground">
-              Fields marked with * are required.
-            </p>
+            <p className="text-xs text-muted-foreground">Fields marked with * are required.</p>
           </CardContent>
         </Card>
 
@@ -289,12 +248,7 @@ const Admin = () => {
           </CardHeader>
           <CardContent>
             <div className="mb-4 flex items-center gap-3">
-              <Input
-                placeholder="Search by name, instructor, or description..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="max-w-md"
-              />
+              <Input placeholder="Search by name, instructor, or description..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-md" />
             </div>
 
             <div className="relative overflow-hidden rounded-md border">
@@ -328,25 +282,14 @@ const Admin = () => {
                         <TableRow key={c._id}>
                           <TableCell className="align-top">
                             <div className="font-medium">{c.name}</div>
-                            {c.description ? (
-                              <div className="text-xs text-muted-foreground line-clamp-2">{c.description}</div>
-                            ) : null}
+                            {c.description ? <div className="text-xs text-muted-foreground line-clamp-2">{c.description}</div> : null}
                           </TableCell>
-                          <TableCell className="align-top">{c.instructor || '—'}</TableCell>
+                          <TableCell className="align-top">{c.instructor || "—"}</TableCell>
                           <TableCell className="align-top">{formatDateTime(c.schedule)}</TableCell>
                           <TableCell className="align-top text-right">{c.capacity}</TableCell>
                           <TableCell className="align-top text-right">
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleDeleteClass(c._id)}
-                              disabled={deletingId === c._id}
-                            >
-                              {deletingId === c._id ? (
-                                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <Trash2 className="mr-2 h-3.5 w-3.5" />
-                              )}
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteClass(c._id)} disabled={deletingId === c._id}>
+                              {deletingId === c._id ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Trash2 className="mr-2 h-3.5 w-3.5" />}
                               Delete
                             </Button>
                           </TableCell>

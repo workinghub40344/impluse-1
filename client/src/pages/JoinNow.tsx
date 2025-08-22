@@ -25,7 +25,7 @@ const formSchema = z.object({
 const JoinNow = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, url } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -38,7 +38,7 @@ const JoinNow = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const response = await fetch('http://localhost:3001/api/auth/register', {
+      const response = await fetch(`${url}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
