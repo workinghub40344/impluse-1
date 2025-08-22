@@ -4,7 +4,7 @@ const connectDB = require('./config/db');
 const dotenv = require('dotenv');
 
 // --- Connect to Database ---
-dotenv.config();
+dotenv.config({ debug: true });
 connectDB();
 
 const app = express();

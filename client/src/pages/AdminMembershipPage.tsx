@@ -51,8 +51,12 @@ export type MembershipPlan = {
   _id: string;
   name: string;
   price: number;
+  originalPrice?: number;
   duration: "monthly" | "quarterly" | "yearly";
   features: string[];
+  popular?: boolean;
+  color?: string;
+  icon?: string;
 };
 
 // API Functions
@@ -225,6 +229,8 @@ const AdminMembershipPage = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>Duration</TableHead>
                 <TableHead>Price</TableHead>
+                <TableHead>Original Price</TableHead>
+                <TableHead>Popular</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -233,7 +239,7 @@ const AdminMembershipPage = () => {
             <TableBody>
               {memberships?.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">No membership plans found.</TableCell>
+                  <TableCell colSpan={6} className="text-center">No membership plans found.</TableCell>
                 </TableRow>
               )}
               {memberships?.map((plan) => (
@@ -241,6 +247,10 @@ const AdminMembershipPage = () => {
                   <TableCell className="font-medium">{plan.name}</TableCell>
                   <TableCell className="capitalize">{plan.duration}</TableCell>
                   <TableCell>${plan.price.toFixed(2)}</TableCell>
+                  <TableCell>
+                    {plan.originalPrice ? `$${plan.originalPrice.toFixed(2)}` : "-"}
+                  </TableCell>
+                  <TableCell>{plan.popular ? "Yes" : "No"}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
