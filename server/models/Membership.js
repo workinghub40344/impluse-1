@@ -1,29 +1,21 @@
+// models/Membership.js
+
 const mongoose = require('mongoose');
 
 const MembershipSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'Please provide a membership name'],
-    trim: true,
-    unique: true,
+  name: { type: String, required: true, unique: true, trim: true },
+  price: { type: Number, required: true },
+  originalPrice: { type: Number },  
+  duration: { 
+    type: String, 
+    enum: ['monthly', 'quarterly', 'yearly'], 
+    required: true 
   },
-  price: {
-    type: Number,
-    required: [true, 'Please provide a price'],
-  },
-  duration: {
-    type: String,
-    enum: ['monthly', 'quarterly', 'yearly'],
-    required: [true, 'Please specify the duration (monthly, quarterly, or yearly)'],
-  },
-  features: {
-    type: [String],
-    default: [],
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+  features: { type: [String], default: [] },
+  popular: { type: Boolean, default: false },
+  color: { type: String, default: 'from-primary to-secondary' }, 
+  icon: { type: String, default: 'Zap' }, 
+  createdAt: { type: Date, default: Date.now },
 });
 
 const Membership = mongoose.model('Membership', MembershipSchema);

@@ -1,3 +1,5 @@
+// controllers/membershipController.js
+
 const Membership = require('../models/Membership');
 
 // @desc    Get all membership plans
